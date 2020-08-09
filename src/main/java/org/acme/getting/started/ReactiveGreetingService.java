@@ -3,8 +3,7 @@ package org.acme.getting.started;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.groups.MultiCreate;
-import io.vertx.axle.PublisherHelper;
+import io.smallrye.mutiny.vertx.MultiHelper;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.MessageConsumer;
 
@@ -16,7 +15,7 @@ import java.time.Duration;
 public class ReactiveGreetingService {
 
     @Inject
-    EventBus bus;
+    EventBus eventBus;
 
     public Uni<String> greeting(String name) {
         return Uni.createFrom().item(name)
@@ -27,7 +26,7 @@ public class ReactiveGreetingService {
     @ConsumeEvent("notifications")
     public void notificationProducer(String msg) {
         //Persist to the DB + "Declared availibility"
-        bus.publish("display", "Re-publish event: " + msg);
+        eventBus.publish("display", "Re-publish event: " + msg);
     }
 
 //    @ConsumeEvent("display")
@@ -38,10 +37,8 @@ public class ReactiveGreetingService {
 //    }
 
     public Multi<String> displayConsumer() {
-     final MultiCreate from = Multi.createFrom();
-     final MessageConsumer<String> consumer = bus.<String>consumer("display");
-     return from.publisher(PublisherHelper.toPublisher(consumer.bodyStream()));
-        //Persist to the DB + "Declared availibility"
+        final MessageConsumer<String> consumer = eventBus.<String>consumer("display");
+        return MultiHelper.toMulti(consumer.bodyStream());
     }
 
 
@@ -53,6 +50,6 @@ public class ReactiveGreetingService {
 
 
     public void fireEvent(String event) {
-        bus.publish("notifications", "Declared availibility --> " +event );
+        eventBus.publish("notifications", "Declared availibility --> " + event);
     }
 }
