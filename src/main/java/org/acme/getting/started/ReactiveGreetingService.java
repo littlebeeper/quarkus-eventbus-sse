@@ -31,7 +31,7 @@ public class ReactiveGreetingService {
 
 
     public Multi<String> displayConsumer() {
-        Multi<Integer> multi = eventBus.<String>consumer("display").toMulti()
+        Multi<String> multi = eventBus.<String>consumer("display").toMulti()
                 .onItem().transform(Message::body);
 
         return multi;
