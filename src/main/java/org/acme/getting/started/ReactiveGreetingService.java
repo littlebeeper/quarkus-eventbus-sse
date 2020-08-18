@@ -4,8 +4,8 @@ import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.MultiHelper;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.mutiny.core.eventbus.EventBus;
+import io.vertx.mutiny.core.eventbus.Message;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -29,16 +29,12 @@ public class ReactiveGreetingService {
         eventBus.publish("display", "Re-publish event: " + msg);
     }
 
-//    @ConsumeEvent("display")
-//    public Multi<String> displayConsumer(String msg) {
-//        System.out.println("Display Event received: " + msg);
-//       return Multi.createFrom().item(msg);
-//        //Persist to the DB + "Declared availibility"
-//    }
 
     public Multi<String> displayConsumer() {
-        final MessageConsumer<String> consumer = eventBus.<String>consumer("display");
-        return MultiHelper.toMulti(consumer.bodyStream());
+        Multi<Integer> multi = eventBus.<String>consumer("display").toMulti()
+                .onItem().transform(Message::body);
+
+        return multi;
     }
 
 
